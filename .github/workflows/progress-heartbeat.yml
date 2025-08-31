@@ -1,0 +1,31 @@
+name: progress-heartbeat
+on:
+  schedule:
+    - cron: "0 14 * * *"   # 10:00 New York = 14:00 UTC
+  workflow_dispatch:
+
+jobs:
+  poke:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect recent activity
+        id: recent
+        env: { GH_TOKEN: ${{ github.token }} }
+        run: |
+          since="$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)"
+          prs=$(gh pr list --state all --search "updated:>$since" --json number | jq 'length')
+          issues=$(gh issue list --search "updated:>$since" --json number | jq 'length')
+          echo "prs=$prs" >> $GITHUB_OUTPUT
+          echo "issues=$issues" >> $GITHUB_OUTPUT
+
+      - name: Post nudge if quiet
+        if: ${{ steps.recent.outputs.prs == '0' && steps.recent.outputs.issues == '0' }}
+        env: { GH_TOKEN: ${{ github.token }} }
+        run: |
+          gh issue comment 1 --body "🔔 **Progress heartbeat**: No PRs or issue updates in 24h. Please check milestone status and update progress."

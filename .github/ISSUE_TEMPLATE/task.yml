@@ -1,0 +1,15 @@
+name: Task
+description: Concrete, shippable unit
+labels: [enhancement, "status:in-progress"]
+body:
+  - type: input
+    id: goal
+    attributes: { label: Goal, placeholder: "What will exist when done?" }
+    validations: { required: true }
+  - type: textarea
+    id: plan
+    attributes: { label: Plan, description: "Bullets, not poetry." }
+    validations: { required: true }
+  - type: input
+    id: link
+    attributes: { label: Links, placeholder: "Milestone or parent issue URL" }
